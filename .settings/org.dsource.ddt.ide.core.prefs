@@ -1,0 +1,2 @@
+build_targets=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\r\n<build_targets xmlns\="org.dsource.ddt.ide.core">\r\n<target auto_enabled\="false" config\="(default)" n_enabled\="true" version2\="true"/>\r\n<target auto_enabled\="false" config\="(default)\:unittest" n_enabled\="false" version2\="true">\r\n<command_invocation append_env\="true" command_arguments\="${DUB_TOOL_PATH} test">\r\n<env_vars/>\r\n</command_invocation>\r\n</target>\r\n</build_targets>\r\n
+eclipse.preferences.version=1
