@@ -4,6 +4,9 @@ import dbc.sqltypes;
 import dbc.sql;
 import dbc.environment;
 
+import etc.c.odbc.sql;
+import etc.c.odbc.sqlext;
+
 enum ConnectionAttributes : int_t
 {
     AccessMode = SQL_ATTR_ACCESS_MODE,

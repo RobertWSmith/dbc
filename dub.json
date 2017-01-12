@@ -1,6 +1,8 @@
 {
 	"name" : "dbc",
 	"description" : "Hello World - A minimal DUB bundle.",
+	"targetType" : "library",
+	"libs-windows" : ["odbc32.dll"],
 	"dependencies" : {
 	}
 }

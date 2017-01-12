@@ -5,8 +5,7 @@ import dbc.sqltypes;
 import std.conv : to;
 
 import etc.c.odbc.sql;
-
-pragma(lib, "odbc32");
+import etc.c.odbc.sqlext;
 
 class OdbcException : Exception
 {
