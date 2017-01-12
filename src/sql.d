@@ -107,6 +107,7 @@ struct Diagnostics
 
 Diagnostics[] ExtractError(HandleType handleType, handle_t handle)
 {
+    debug writeln("called `ExtractError`");
     Diagnostics[] output;
     smallint_t i = 1;
     int_t nativeError = 0;
@@ -132,7 +133,7 @@ Diagnostics[] ExtractError(HandleType handleType, handle_t handle)
 
 void AllocHandle(HandleType handleType, handle_t inputHandle, handle_t* outputHandle)
 {
-    debug writefln("`AllocHandle` called w/ HandleType: %s", handleType);
+    debug writefln("called `AllocHandle` w/ HandleType: %s", handleType);
 
     if (!succeeded(SQLAllocHandle(handleType.to!smallint_t, inputHandle, outputHandle)))
     {
@@ -142,7 +143,7 @@ void AllocHandle(HandleType handleType, handle_t inputHandle, handle_t* outputHa
 
 void FreeHandle(HandleType handleType, handle_t handle)
 {
-    debug writefln("`FreeHandle` called w/ HandleType: %s", handleType);
+    debug writefln("called `FreeHandle` w/ HandleType: %s", handleType);
     if (checkAllocated(handle))
     {
         SQLRETURN rc = SQLFreeHandle(handleType.to!smallint_t, handle);
@@ -169,7 +170,7 @@ unittest
 handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
         pointer_t value_ptr, int_t buffer_length)
 {
-    debug string line = format("`SetAttribute` called w/ HandleType: %s", handleType);
+    debug string line = format("called `SetAttribute` w/ HandleType: %s", handleType);
 
     SQLRETURN rc;
     final switch (handleType)
@@ -208,7 +209,7 @@ handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
 handle_t GetAttribute(HandleType handleType, handle_t handle, int_t attribute,
         pointer_t value_ptr, int_t buffer_length, int_t* string_length_ptr)
 {
-    debug writefln("`GetAttribute` called w/ HandleType: %s", handleType);
+    debug string line = format("called `GetAttribute` w/ HandleType: %s", handleType);
 
     SQLRETURN rc;
     final switch (handleType)
@@ -309,6 +310,7 @@ struct SqlDriver
 
 SqlDriver[] Drivers(handle_t environmentHandle)
 {
+    debug writeln("called `Drivers`");
     import etc.c.odbc.sqlext : SQLDrivers;
 
     SqlDriver[] output;
@@ -389,6 +391,7 @@ enum ReturnDataSources
 SqlDataSource[] DataSources(handle_t environmentHandle,
         ReturnDataSources dataSources = ReturnDataSources.All)
 {
+    debug writeln("called `DataSources`");
     import etc.c.odbc.sqlext : SQL_FETCH_FIRST_USER, SQL_FETCH_FIRST_SYSTEM;
 
     SqlDataSource[] output;
@@ -462,11 +465,15 @@ unittest
 handle_t Connect(handle_t connectionHandle, string_t serverName,
         string_t userName, string_t authentication)
 {
+    alias sql_func = SQLConnect;
+    debug writefln("called `Connect` w/ function: %s args: %s %s %s",
+            fullyQualifiedName!sql_func, serverName, userName, authentication);
+
     char_t[] server = str_conv(serverName);
     char_t[] user = str_conv(userName);
     char_t[] auth = str_conv(authentication);
 
-    if (!succeeded(SQLConnect(connectionHandle, server.ptr, SQL_NTS, user.ptr,
+    if (!succeeded(sql_func(connectionHandle, server.ptr, SQL_NTS, user.ptr,
             SQL_NTS, auth.ptr, SQL_NTS)))
     {
         throw new OdbcException(HandleType.Connection, connectionHandle);
@@ -478,9 +485,13 @@ handle_t Connect(handle_t connectionHandle, string_t connectionString)
 {
     import etc.c.odbc.sqlext : SQLDriverConnect, SQL_DRIVER_COMPLETE;
 
+    alias sql_func = SQLDriverConnect;
+    debug writefln("called `Connect` w/ function: %s arg: %s",
+            fullyQualifiedName!sql_func, connectionString);
+
     char_t[] cstr = str_conv(connectionString);
-    if (!succeeded(SQLDriverConnect(connectionHandle, cast(pointer_t) null,
-            cstr.ptr, SQL_NTS, cast(char_t*) null, 0, cast(smallint_t*) null, SQL_DRIVER_COMPLETE)))
+    if (!succeeded(sql_func(connectionHandle, cast(pointer_t) null, cstr.ptr,
+            SQL_NTS, cast(char_t*) null, 0, cast(smallint_t*) null, SQL_DRIVER_COMPLETE)))
     {
         throw new OdbcException(HandleType.Connection, connectionHandle);
     }
@@ -489,6 +500,7 @@ handle_t Connect(handle_t connectionHandle, string_t connectionString)
 
 handle_t Disconnect(handle_t connectionHandle)
 {
+    debug writeln("called `Disconnect`");
     if (!succeeded(SQLDisconnect(connectionHandle)))
     {
         throw new OdbcException(HandleType.Connection, connectionHandle);
@@ -499,6 +511,7 @@ handle_t Disconnect(handle_t connectionHandle)
 handle_t BindColumn(handle_t statementHandle, usmallint_t columnNbr, smallint_t targetType,
         pointer_t targetValuePtr, int_t bufferLength = 0, int_t* strLen_or_IndPtr = null)
 {
+    debug writefln("called `BindColumn` columnNbr: %s", columnNbr);
     if (!succeeded(SQLBindCol(statementHandle, columnNbr, targetType,
             targetValuePtr, bufferLength, strLen_or_IndPtr)))
     {
@@ -513,6 +526,7 @@ handle_t BindParameter(handle_t statementHandle, usmallint_t parameterNbr,
         ulen_t columnSize, smallint_t decimalDigits, pointer_t parameterValuePtr,
         int_t bufferLength = 0, int_t* strLen_Or_IndPtr = null)
 {
+    debug writefln("called `BindParameter` parameterNbr: %s", parameterNbr);
     import etc.c.odbc.sqlext : SQLBindParameter;
 
     if (!succeeded(SQLBindParameter(statementHandle, parameterNbr, inputOutputType, valueType, parameterType,
@@ -525,6 +539,7 @@ handle_t BindParameter(handle_t statementHandle, usmallint_t parameterNbr,
 
 handle_t ExecuteDirect(handle_t statementHandle, string_t statementText)
 {
+    debug writefln("called `ExecuteDirect` statementText: %s", statementText);
     char_t[] stmt = str_conv(statementText);
     if (!succeeded(SQLExecDirect(statementHandle, stmt.ptr, SQL_NTS)))
     {
@@ -535,6 +550,7 @@ handle_t ExecuteDirect(handle_t statementHandle, string_t statementText)
 
 handle_t Execute(handle_t statementHandle)
 {
+    debug writeln("called `Execute`");
     if (!succeeded(SQLExecute(statementHandle)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -551,6 +567,8 @@ enum CompletionType : smallint_t
 handle_t EndTransaction(HandleType handleType, handle_t handle,
         CompletionType completionType = CompletionType.Commit)
 {
+    debug writefln("called `EndTransaction` handleType: %s completionType: %s",
+            handleType, completionType);
     assert(handleType == HandleType.Environment || handleType == HandleType.Connection);
 
     if (!succeeded(SQLEndTran(handleType.to!SQLSMALLINT, handle, completionType.to!SQLSMALLINT)))
@@ -562,6 +580,7 @@ handle_t EndTransaction(HandleType handleType, handle_t handle,
 
 handle_t CloseCursor(handle_t statementHandle)
 {
+    debug writeln("called `CloseCursor`");
     if (!succeeded(SQLCloseCursor(statementHandle)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -571,6 +590,8 @@ handle_t CloseCursor(handle_t statementHandle)
 
 handle_t Cancel(handle_t statementHandle)
 {
+    debug writeln("called `Cancel`");
+
     if (!succeeded(SQLCancel(statementHandle)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -580,6 +601,7 @@ handle_t Cancel(handle_t statementHandle)
 
 handle_t Prepare(handle_t statementHandle, string_t statementText)
 {
+    debug writefln("called `Prepare` statementText: %s", statementText);
     char_t[] stmt = str_conv(statementText);
     if (!succeeded(SQLPrepare(statementHandle, stmt.ptr, SQL_NTS)))
     {
@@ -600,6 +622,7 @@ enum FetchOrientation : smallint_t
 
 handle_t Fetch(handle_t statementHandle)
 {
+    debug writeln("called `Fetch`");
     if (!succeeded(SQLFetch(statementHandle)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -610,6 +633,7 @@ handle_t Fetch(handle_t statementHandle)
 handle_t FetchScroll(handle_t statementHandle,
         FetchOrientation fetchOrientation = FetchOrientation.Next, int_t offset = 0)
 {
+    debug writefln("called `FetchScroll` fetchOrientation: %s offset: %s", fetchOrientation, offset);
     if (!succeeded(SQLFetchScroll(statementHandle, fetchOrientation.to!smallint_t, offset)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -622,6 +646,8 @@ handle_t ExtendedFetch(handle_t statementHandle, FetchOrientation fetchOrientati
 {
     import etc.c.odbc.sqlext : SQLExtendedFetch;
 
+    debug writefln("called `ExtendedFetch` fetchOrientation: %s offset: %s",
+            fetchOrientation, offset);
     if (!succeeded(SQLExtendedFetch(statementHandle,
             fetchOrientation.to!usmallint_t, offset, rowCountPtr, rowStatusArray)))
     {
@@ -632,6 +658,7 @@ handle_t ExtendedFetch(handle_t statementHandle, FetchOrientation fetchOrientati
 
 handle_t SetCursorName(handle_t statementHandle, string_t cursorName)
 {
+    debug writefln("called `SetCursorName` cursorName: %s", cursorName);
     char_t[] name = str_conv(cursorName);
     if (!succeeded(SQLSetCursorName(statementHandle, name.ptr, SQL_NTS)))
     {
@@ -642,6 +669,7 @@ handle_t SetCursorName(handle_t statementHandle, string_t cursorName)
 
 handle_t GetCursorName(handle_t statementHandle, ref string_t cursorName)
 {
+    debug writeln("called `GetCursorName`");
     char_t[1024 + 1] name;
     smallint_t len = name.length - 1;
     if (!succeeded(SQLGetCursorName(statementHandle, name.ptr, len, null)))
@@ -654,6 +682,7 @@ handle_t GetCursorName(handle_t statementHandle, ref string_t cursorName)
 
 handle_t NumResultCols(handle_t statementHandle, smallint_t* columnCountPtr)
 {
+    debug writeln("called `NumResultCols`");
     if (!succeeded(SQLNumResultCols(statementHandle, columnCountPtr)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -663,6 +692,7 @@ handle_t NumResultCols(handle_t statementHandle, smallint_t* columnCountPtr)
 
 handle_t NumParams(handle_t statementHandle, smallint_t* parameterCountPtr)
 {
+    debug writeln("called `NumParams`");
     import etc.c.odbc.sqlext : SQLNumParams;
 
     if (!succeeded(SQLNumParams(statementHandle, parameterCountPtr)))
@@ -674,6 +704,7 @@ handle_t NumParams(handle_t statementHandle, smallint_t* parameterCountPtr)
 
 handle_t RowCount(handle_t statementHandle, int_t* rowCountPtr)
 {
+    debug writeln("called `RowCount`");
     if (!succeeded(SQLRowCount(statementHandle, rowCountPtr)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
@@ -683,6 +714,7 @@ handle_t RowCount(handle_t statementHandle, int_t* rowCountPtr)
 
 handle_t GetTypeInfo(handle_t statementHandle, smallint_t dataType)
 {
+    debug writeln("called `GetTypeInfo`");
     if (!succeeded(SQLGetTypeInfo(statementHandle, dataType)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);

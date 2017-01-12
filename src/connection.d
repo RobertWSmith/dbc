@@ -1,7 +1,10 @@
 module dbc.connection;
 
+debug import std.stdio;
+
 import dbc.sqltypes;
 import dbc.sql;
+import dbc.handle;
 import dbc.environment;
 
 import std.stdint;
@@ -66,53 +69,61 @@ enum TransactionIsolation : uint_t
     Serializable = SQL_TXN_SERIALIZABLE,
 }
 
-struct Connection
+class Connection : Handle
 {
-    public enum HandleType handle_type = HandleType.Connection;
-    package handle_t handle = cast(handle_t) null_handle;
-    public Environment _env;
+    package Environment _env;
 
-    this(uint_t login_timeout, OdbcCursors odbc_cursors, uint_t packet_size)
+    package this(uint_t login_timeout, OdbcCursors odbc_cursors, uint_t packet_size)
     {
+        debug writeln("Begin Connection Constructor.");
         this._env = environment();
 
-        this.allocate();
+        super(HandleType.Connection);
+        this.allocate(this._env.handle);
+
         this.loginTimeout = login_timeout;
         this.odbcCursors = odbc_cursors;
         this.packetSize = packet_size;
+        debug writeln("End Connection Constructor.");
     }
 
     ~this()
     {
-        this.free();
-    }
-
-    public void allocate()
-    {
-        import etc.c.odbc.sqlext : SQL_ATTR_ODBC_VERSION, SQL_OV_ODBC3;
-
-        this._env.allocate();
-
-        this.free();
-        AllocHandle(this.handle_type, this._env.handle, &handle);
-    }
-
-    public void free()
-    {
-        FreeHandle(this.handle_type, this.handle);
-        this._env.free();
+        debug writeln("Begin Connection Constructor.");
+        this.disconnect();
+        debug writeln("End Connection Constructor.");
     }
 
     public void setAttribute(ConnectionAttributes attr, pointer_t value_ptr, int_t buffer_length = 0)
     {
-        SetAttribute(this.handle_type, this.handle, attr.to!int_t, value_ptr, buffer_length);
+        this.p_setAttribute(attr.to!int_t, value_ptr, buffer_length);
+        // SetAttribute(this.handle_type, this.handle, attr.to!int_t, value_ptr, buffer_length);
     }
 
     public void getAttribute(ConnectionAttributes attr, pointer_t value_ptr,
             int_t buffer_length = 0, int_t* string_length_ptr = null)
     {
-        GetAttribute(this.handle_type, this.handle, attr.to!int_t, value_ptr,
-                buffer_length, string_length_ptr);
+        this.p_getAttribute(attr.to!int_t, value_ptr, buffer_length, string_length_ptr);
+        // GetAttribute(this.handleType, this.handle, attr.to!int_t, value_ptr, buffer_length, string_length_ptr);
+    }
+
+    public void connect(string_t connectionString)
+    {
+        debug writefln("called `connect` connectionString: %s", connectionString);
+        Connect(this.handle, connectionString);
+    }
+
+    public void connect(string_t serverName, string_t userName, string_t authentication)
+    {
+        debug writefln("called `connect` serverName: %s userName: %s authentication: %s",
+                serverName, userName, authentication);
+        Connect(this.handle, serverName, userName, authentication);
+    }
+
+    public void disconnect()
+    {
+        debug writeln("called `disconnect`");
+        Disconnect(this.handle);
     }
 
     public @property AccessMode accessMode()
@@ -137,7 +148,7 @@ struct Connection
     public @property void asyncEnabled(bool input)
     {
         ulen_t value = input ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF;
-        this.setAttribute(ConnectionAttributes.AsyncEnabled, &value);
+        this.setAttribute(ConnectionAttributes.AsyncEnabled, cast(pointer_t) value);
     }
 
     public @property bool autoImportParameterDescription()
@@ -150,7 +161,8 @@ struct Connection
     public @property void autoImportParameterDescription(bool input)
     {
         uint_t value = input ? SQL_TRUE : SQL_FALSE;
-        this.setAttribute(ConnectionAttributes.AutoImportParameterDescription, &value);
+        this.setAttribute(ConnectionAttributes.AutoImportParameterDescription,
+                cast(pointer_t) value);
     }
 
     public @property bool autocommit()
@@ -163,7 +175,7 @@ struct Connection
     public @property void autocommit(bool input)
     {
         uint_t value = input ? SQL_AUTOCOMMIT_ON : SQL_AUTOCOMMIT_OFF;
-        this.setAttribute(ConnectionAttributes.Autocommit, &value);
+        this.setAttribute(ConnectionAttributes.Autocommit, cast(pointer_t) value);
     }
 
     public @property bool connectionDead()
@@ -176,7 +188,7 @@ struct Connection
     public @property uint_t connectionTimeout()
     {
         uint_t value;
-        this.getAttribute(ConnectionAttributes.ConnectionTimeout, &value);
+        this.getAttribute(ConnectionAttributes.ConnectionTimeout, cast(pointer_t) value);
         return value;
     }
 
@@ -209,7 +221,7 @@ struct Connection
 
     private @property void loginTimeout(uint_t input)
     {
-        this.setAttribute(ConnectionAttributes.LoginTimeout, &input);
+        this.setAttribute(ConnectionAttributes.LoginTimeout, cast(pointer_t) input);
     }
 
     public @property bool metadataID()
@@ -222,19 +234,20 @@ struct Connection
     public @property void metadataID(bool input)
     {
         uint_t value = input ? SQL_TRUE : SQL_FALSE;
-        this.setAttribute(ConnectionAttributes.MetadataID, &value);
+        this.setAttribute(ConnectionAttributes.MetadataID, cast(pointer_t) value);
     }
 
     public @property OdbcCursors odbcCursors()
     {
-        OdbcCursors value;
+        ulen_t value;
         this.getAttribute(ConnectionAttributes.OdbcCursors, &value);
-        return value;
+        return value.to!OdbcCursors;
     }
 
     private @property void odbcCursors(OdbcCursors input)
     {
-        this.setAttribute(ConnectionAttributes.OdbcCursors, &input);
+        ulen_t value = input.to!OdbcCursors;
+        this.setAttribute(ConnectionAttributes.OdbcCursors, cast(pointer_t) input);
     }
 
     public @property uint_t packetSize()
@@ -246,7 +259,7 @@ struct Connection
 
     public @property void packetSize(uint_t input)
     {
-        this.setAttribute(ConnectionAttributes.PacketSize, &input);
+        this.setAttribute(ConnectionAttributes.PacketSize, cast(pointer_t) input);
     }
 
     public @property window_t quietMode()
@@ -258,7 +271,7 @@ struct Connection
 
     public @property void quietMode(window_t input)
     {
-        this.setAttribute(ConnectionAttributes.QuietMode, &input);
+        this.setAttribute(ConnectionAttributes.QuietMode, input);
     }
 
     public @property bool trace()
@@ -271,7 +284,7 @@ struct Connection
     public @property void trace(bool input)
     {
         uint_t value = input ? SQL_OPT_TRACE_ON : SQL_OPT_TRACE_OFF;
-        this.setAttribute(ConnectionAttributes.Trace, &value);
+        this.setAttribute(ConnectionAttributes.Trace, cast(pointer_t) value);
     }
 
     public @property string_t tracefile()
@@ -289,14 +302,41 @@ struct Connection
 
     public @property TransactionIsolation transactionIsolation()
     {
-        TransactionIsolation value;
+        int_t value;
         this.getAttribute(ConnectionAttributes.TransactionIsolation, &value);
-        return value;
+        return value.to!TransactionIsolation;
     }
 
     public @property void transactionIsolation(TransactionIsolation input)
     {
-        this.setAttribute(ConnectionAttributes.TransactionIsolation, &input);
+        this.setAttribute(ConnectionAttributes.TransactionIsolation, cast(pointer_t) input);
     }
+}
 
+Connection connect(uint_t login_timeout = 0,
+        OdbcCursors odbc_cursors = OdbcCursors.init, uint_t packet_size = 0)
+{
+    return new Connection(login_timeout, odbc_cursors, packet_size);
+}
+
+Connection connect(string_t connectionString, uint_t login_timeout = 0,
+        OdbcCursors odbc_cursors = OdbcCursors.init, uint_t packet_size = 0)
+{
+    Connection conn = connect(login_timeout, odbc_cursors, packet_size);
+    conn.connect(connectionString);
+    return conn;
+}
+
+Connection connect(string_t serverName, string_t userName = null, string_t authentication = null,
+        uint_t login_timeout = 0, OdbcCursors odbc_cursors = OdbcCursors.init, uint_t packet_size = 0)
+{
+    Connection conn = connect(login_timeout, odbc_cursors, packet_size);
+    conn.connect(serverName, userName, authentication);
+    return conn;
+}
+
+unittest
+{
+    Connection conn = connect();
+    assert(conn.isAllocated);
 }
