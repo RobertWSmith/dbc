@@ -4,6 +4,12 @@ import dbc.sqltypes;
 import dbc.sql;
 import dbc.environment;
 
+import std.stdint;
+import std.conv : to;
+
+import etc.c.odbc.sql;
+import etc.c.odbc.sqlext;
+
 enum ConnectionAttributes : int_t
 {
     AccessMode = SQL_ATTR_ACCESS_MODE,
@@ -52,28 +58,49 @@ enum OdbcCursors : ulen_t
     UseODBC = SQL_CUR_USE_ODBC,
 }
 
+enum TransactionIsolation : uint_t
+{
+    ReadUncommitted = SQL_TXN_READ_UNCOMMITTED,
+    ReadCommitted = SQL_TXN_READ_COMMITTED,
+    RepeatableRead = SQL_TXN_REPEATABLE_READ,
+    Serializable = SQL_TXN_SERIALIZABLE,
+}
+
 struct Connection
 {
     public enum HandleType handle_type = HandleType.Connection;
     package handle_t handle = cast(handle_t) null_handle;
-    private Environment _env = environment();
+    public Environment _env;
 
-    package @property handle_t environmentHandle()
+    this(uint_t login_timeout, OdbcCursors odbc_cursors, uint_t packet_size)
     {
-        this._env.handle;
+        this._env = environment();
+
+        this.allocate();
+        this.loginTimeout = login_timeout;
+        this.odbcCursors = odbc_cursors;
+        this.packetSize = packet_size;
+    }
+
+    ~this()
+    {
+        this.free();
     }
 
     public void allocate()
     {
         import etc.c.odbc.sqlext : SQL_ATTR_ODBC_VERSION, SQL_OV_ODBC3;
 
+        this._env.allocate();
+
         this.free();
-        AllocHandle(this.handle_type, this.environmentHandle, &handle);
+        AllocHandle(this.handle_type, this._env.handle, &handle);
     }
 
     public void free()
     {
         FreeHandle(this.handle_type, this.handle);
+        this._env.free();
     }
 
     public void setAttribute(ConnectionAttributes attr, pointer_t value_ptr, int_t buffer_length = 0)
@@ -180,7 +207,7 @@ struct Connection
         return value;
     }
 
-    public @property void loginTimeout(uint_t input)
+    private @property void loginTimeout(uint_t input)
     {
         this.setAttribute(ConnectionAttributes.LoginTimeout, &input);
     }
@@ -205,8 +232,71 @@ struct Connection
         return value;
     }
 
-    public @property void odbcCursors(OdbcCursors input)
+    private @property void odbcCursors(OdbcCursors input)
     {
-        this.setAttribute(ConnectionAttributes.OdbcCursors, &value);
+        this.setAttribute(ConnectionAttributes.OdbcCursors, &input);
     }
+
+    public @property uint_t packetSize()
+    {
+        uint_t value;
+        this.getAttribute(ConnectionAttributes.PacketSize, &value);
+        return value;
+    }
+
+    public @property void packetSize(uint_t input)
+    {
+        this.setAttribute(ConnectionAttributes.PacketSize, &input);
+    }
+
+    public @property window_t quietMode()
+    {
+        window_t value;
+        this.getAttribute(ConnectionAttributes.QuietMode, &value);
+        return value;
+    }
+
+    public @property void quietMode(window_t input)
+    {
+        this.setAttribute(ConnectionAttributes.QuietMode, &input);
+    }
+
+    public @property bool trace()
+    {
+        uint_t value;
+        this.getAttribute(ConnectionAttributes.Trace, &value);
+        return (value == SQL_OPT_TRACE_ON);
+    }
+
+    public @property void trace(bool input)
+    {
+        uint_t value = input ? SQL_OPT_TRACE_ON : SQL_OPT_TRACE_OFF;
+        this.setAttribute(ConnectionAttributes.Trace, &value);
+    }
+
+    public @property string_t tracefile()
+    {
+        char_t[1024 + 1] value;
+        this.getAttribute(ConnectionAttributes.Tracefile, value.ptr, value.length - 1);
+        return str_conv(value.ptr);
+    }
+
+    public @property void tracefile(string_t input)
+    {
+        char_t[] value = str_conv(input);
+        this.setAttribute(ConnectionAttributes.Tracefile, value.ptr, SQL_NTS);
+    }
+
+    public @property TransactionIsolation transactionIsolation()
+    {
+        TransactionIsolation value;
+        this.getAttribute(ConnectionAttributes.TransactionIsolation, &value);
+        return value;
+    }
+
+    public @property void transactionIsolation(TransactionIsolation input)
+    {
+        this.setAttribute(ConnectionAttributes.TransactionIsolation, &input);
+    }
+
 }

@@ -1,5 +1,11 @@
 module dbc.sql;
 
+debug import std.stdio;
+
+debug import std.traits;
+
+debug import std.string;
+
 import dbc.sqltypes;
 
 import std.conv : to;
@@ -126,6 +132,8 @@ Diagnostics[] ExtractError(HandleType handleType, handle_t handle)
 
 void AllocHandle(HandleType handleType, handle_t inputHandle, handle_t* outputHandle)
 {
+    debug writefln("`AllocHandle` called w/ HandleType: %s", handleType);
+
     if (!succeeded(SQLAllocHandle(handleType.to!smallint_t, inputHandle, outputHandle)))
     {
         throw new OdbcException(handleType, &outputHandle);
@@ -134,6 +142,7 @@ void AllocHandle(HandleType handleType, handle_t inputHandle, handle_t* outputHa
 
 void FreeHandle(HandleType handleType, handle_t handle)
 {
+    debug writefln("`FreeHandle` called w/ HandleType: %s", handleType);
     if (checkAllocated(handle))
     {
         SQLRETURN rc = SQLFreeHandle(handleType.to!smallint_t, handle);
@@ -158,12 +167,16 @@ unittest
 }
 
 handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
-        pointer_t value_ptr, int_t buffer_length = 0)
+        pointer_t value_ptr, int_t buffer_length)
 {
+    debug string line = format("`SetAttribute` called w/ HandleType: %s", handleType);
+
     SQLRETURN rc;
     final switch (handleType)
     {
     case HandleType.Connection:
+        debug line ~= format(" function: `%s`",
+                fullyQualifiedName!SQLSetConnectAttr);
         rc = SQLSetConnectAttr(handle, attribute, value_ptr, buffer_length);
         break;
 
@@ -171,13 +184,19 @@ handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
         break;
 
     case HandleType.Environment:
+        debug line ~= format(" function: `%s`",
+                fullyQualifiedName!SQLSetEnvAttr);
         rc = SQLSetEnvAttr(handle, attribute, value_ptr, buffer_length);
         break;
 
     case HandleType.Statement:
+        debug line ~= format(" function: `%s`",
+                fullyQualifiedName!SQLSetStmtAttr);
         rc = SQLSetStmtAttr(handle, attribute, value_ptr, buffer_length);
         break;
     }
+
+    debug writeln(line);
 
     if (!succeeded(rc))
     {
@@ -187,8 +206,10 @@ handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
 }
 
 handle_t GetAttribute(HandleType handleType, handle_t handle, int_t attribute,
-        pointer_t value_ptr, int_t buffer_length = 0, int_t* string_length_ptr = null)
+        pointer_t value_ptr, int_t buffer_length, int_t* string_length_ptr)
 {
+    debug writefln("`GetAttribute` called w/ HandleType: %s", handleType);
+
     SQLRETURN rc;
     final switch (handleType)
     {
@@ -229,10 +250,10 @@ unittest
     AllocHandle(typ, SQL_NULL_HANDLE, &handle);
     assert(handle != SQL_NULL_HANDLE, "Handle must be set to not null after `AllocHandle`");
 
-    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3);
+    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3, 0);
 
     int_t odbc_version;
-    GetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, &odbc_version);
+    GetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, &odbc_version, 0, null);
 
     assert(odbc_version == cast(int_t) SQL_OV_ODBC3,
             "Must be able to set and get same value from call to `SetAttribute` and `GetAttribute`");
@@ -332,7 +353,7 @@ unittest
     handle_t handle = SQL_NULL_HANDLE;
 
     AllocHandle(typ, SQL_NULL_HANDLE, &handle);
-    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3);
+    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3, 0);
 
     SqlDriver[] drivers = Drivers(handle);
     assert(drivers.length > 0);
@@ -424,7 +445,7 @@ unittest
     handle_t handle = SQL_NULL_HANDLE;
 
     AllocHandle(typ, SQL_NULL_HANDLE, &handle);
-    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3);
+    SetAttribute(typ, handle, cast(int_t) SQL_ATTR_ODBC_VERSION, cast(pointer_t) SQL_OV_ODBC3, 0);
 
     SqlDataSource[] all_data_sources = DataSources(handle, ReturnDataSources.All);
     assert(all_data_sources.length >= 0);
