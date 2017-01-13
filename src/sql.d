@@ -523,9 +523,13 @@ handle_t Disconnect(handle_t connectionHandle)
 {
     debug writeln("called `Disconnect`");
     SQLRETURN rc = SQLDisconnect(connectionHandle);
-    if (!succeeded(rc) && rc != SQL_NO_DATA)
+    debug
     {
-        throw new OdbcException(HandleType.Connection, connectionHandle);
+        if (!succeeded(rc))
+        {
+            foreach (e; ExtractError(HandleType.Connection, connectionHandle))
+                writefln(e.toString);
+        }
     }
     return connectionHandle;
 }
@@ -543,9 +547,8 @@ handle_t BindColumn(handle_t statementHandle, usmallint_t columnNbr, smallint_t 
 }
 
 handle_t BindParameter(handle_t statementHandle, usmallint_t parameterNbr,
-        smallint_t inputOutputType, smallint_t valueType,
-        smallint_t parameterType,
-        ulen_t columnSize, smallint_t decimalDigits, pointer_t parameterValuePtr,
+        smallint_t inputOutputType, smallint_t valueType, smallint_t parameterType,
+        usmallint_t columnSize, smallint_t decimalDigits, pointer_t parameterValuePtr,
         int_t bufferLength = 0, int_t* strLen_Or_IndPtr = null)
 {
     debug writefln("called `BindParameter` parameterNbr: %s", parameterNbr);
@@ -664,7 +667,7 @@ handle_t FetchScroll(handle_t statementHandle,
 }
 
 handle_t ExtendedFetch(handle_t statementHandle, FetchOrientation fetchOrientation = FetchOrientation.Next,
-        int_t offset = 0, uint_t* rowCountPtr = null, usmallint_t* rowStatusArray = null)
+        int_t offset = 0, usmallint_t* rowCountPtr = null, usmallint_t* rowStatusArray = null)
 {
     import etc.c.odbc.sqlext : SQLExtendedFetch;
 

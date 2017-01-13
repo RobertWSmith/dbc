@@ -1,6 +1,6 @@
 module dbc.sqltypes;
 
-import std.stdint : int64_t, uint64_t;
+import std.stdint;
 
 import etc.c.odbc.sqltypes;
 
@@ -43,11 +43,14 @@ alias interval_struct_t = SQL_INTERVAL_STRUCT;
 // date and time
 
 // integral
-alias smallint_t = SQLSMALLINT;
-alias usmallint_t = SQLUSMALLINT;
+alias tinyint_t = int8_t;
+alias utinyint_t = uint8_t;
 
-alias int_t = SQLINTEGER;
-alias uint_t = SQLUINTEGER;
+alias smallint_t = int16_t;
+alias usmallint_t = uint16_t;
+
+alias int_t = int32_t;
+alias uint_t = uint32_t;
 
 alias bigint_t = int64_t;
 alias ubigint_t = uint64_t;
