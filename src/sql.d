@@ -65,12 +65,14 @@ bool succeeded(T : SqlReturn)(T rc)
 {
     import std.conv : to;
 
+    debug writefln("called `succeeded` value: %s", rc);
+
     return SQL_SUCCEEDED(to!SQLRETURN(rc));
 }
 
 bool succeeded(T : SQLRETURN)(T rc)
 {
-    return SQL_SUCCEEDED(rc);
+    return succeeded(rc.to!SqlReturn);
 }
 
 enum HandleType : smallint_t
@@ -146,7 +148,25 @@ void FreeHandle(HandleType handleType, handle_t handle)
     debug writefln("called `FreeHandle` w/ HandleType: %s", handleType);
     if (checkAllocated(handle))
     {
-        SQLRETURN rc = SQLFreeHandle(handleType.to!smallint_t, handle);
+        SQLRETURN rc;
+        switch (handleType)
+        {
+        default:
+            break;
+
+        case HandleType.Connection:
+            try
+            {
+                Disconnect(handle);
+            }
+            catch (OdbcException e)
+            {
+                debug writeln(e.msg);
+            }
+            break;
+        }
+
+        rc = SQLFreeHandle(handleType.to!smallint_t, handle);
         if (!succeeded(rc) && (rc != SQL_INVALID_HANDLE))
         {
             throw new OdbcException(handleType, handle);
@@ -262,9 +282,10 @@ unittest
     FreeHandle(typ, handle);
 }
 
-handle_t GetInfo(handle_t connectionHandle, usmallint_t infoType, pointer_t infoValuePtr,
-        smallint_t bufferLength = 0, smallint_t* stringLengthPtr = null)
+handle_t GetInfo(handle_t connectionHandle, usmallint_t infoType,
+        pointer_t infoValuePtr, smallint_t bufferLength, smallint_t* stringLengthPtr)
 {
+    debug writefln("calling `GetInfo`");
     if (!succeeded(SQLGetInfo(connectionHandle, infoType, infoValuePtr,
             bufferLength, stringLengthPtr)))
     {
@@ -391,12 +412,12 @@ enum ReturnDataSources
 SqlDataSource[] DataSources(handle_t environmentHandle,
         ReturnDataSources dataSources = ReturnDataSources.All)
 {
-    debug writeln("called `DataSources`");
+    debug writefln("called `DataSources` dataSources: %s", dataSources);
     import etc.c.odbc.sqlext : SQL_FETCH_FIRST_USER, SQL_FETCH_FIRST_SYSTEM;
 
     SqlDataSource[] output;
-    SQLRETURN rc = SQL_SUCCESS;
-    usmallint_t direction = SQL_FETCH_FIRST;
+    SQLRETURN rc;
+    usmallint_t direction;
 
     char_t[128 + 1] server;
     smallint_t server_len = (server.length - 1);
@@ -501,7 +522,8 @@ handle_t Connect(handle_t connectionHandle, string_t connectionString)
 handle_t Disconnect(handle_t connectionHandle)
 {
     debug writeln("called `Disconnect`");
-    if (!succeeded(SQLDisconnect(connectionHandle)))
+    SQLRETURN rc = SQLDisconnect(connectionHandle);
+    if (!succeeded(rc) && rc != SQL_NO_DATA)
     {
         throw new OdbcException(HandleType.Connection, connectionHandle);
     }

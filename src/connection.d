@@ -89,9 +89,10 @@ class Connection : Handle
 
     ~this()
     {
-        debug writeln("Begin Connection Constructor.");
-        this.disconnect();
-        debug writeln("End Connection Constructor.");
+        debug writeln("Begin Connection Destructor.");
+        this.p_free();
+        this._env.p_free();
+        debug writeln("End Connection Destructor.");
     }
 
     public void setAttribute(ConnectionAttributes attr, pointer_t value_ptr, int_t buffer_length = 0)
@@ -339,4 +340,5 @@ unittest
 {
     Connection conn = connect();
     assert(conn.isAllocated);
+    conn.destroy();
 }

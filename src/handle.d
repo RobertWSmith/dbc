@@ -12,10 +12,10 @@ abstract class Handle
 
     this(HandleType handle_type)
     {
-        debug writeln("Begin Handle Constructor.");
+        debug writefln("Begin Handle %s Constructor.", handle_type);
         this.handleType = handle_type;
         this.nullify();
-        debug writeln("End Handle Constructor.");
+        debug writefln("End Handle %s Constructor.", this.handleType);
     }
 
     ~this()
