@@ -1,3 +1,4 @@
+// Written in the D programming language.
 module dbc.sql;
 
 debug import std.stdio;
@@ -155,24 +156,27 @@ void FreeHandle(HandleType handleType, handle_t handle)
             break;
 
         case HandleType.Connection:
-            try
+            rc = SQLDisconnect(handle);
+            debug
             {
-                Disconnect(handle);
-            }
-            catch (OdbcException e)
-            {
-                debug writeln(e.msg);
+                if (!succeeded(rc))
+                    foreach (e; ExtractError(handleType, handle))
+                        writeln(e.toString);
             }
             break;
         }
 
         rc = SQLFreeHandle(handleType.to!smallint_t, handle);
-        if (!succeeded(rc) && (rc != SQL_INVALID_HANDLE))
+        debug
         {
-            throw new OdbcException(handleType, handle);
+            if (!succeeded(rc) && (rc != SQL_INVALID_HANDLE))
+            {
+                foreach (e; ExtractError(handleType, handle))
+                    writeln(e.toString);
+            }
+            // throw new OdbcException(handleType, handle);
         }
     }
-    handle = cast(handle_t) null_handle;
 }
 
 unittest
