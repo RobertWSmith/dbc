@@ -70,81 +70,82 @@ enum TransactionIsolation : uint_t
     Serializable = SQL_TXN_SERIALIZABLE,
 }
 
-<<<<<<< HEAD
-enum InfoType : usmallint_t
-{
-    // Driver Information
-    ActiveEnvironments = SQL_ACTIVE_ENVIRONMENTS,
-    AsyncConnectionFunctions = SQL_ASYNC_DBC_FUNCTIONS,
-    AsyncMode = SQL_ASYNC_MODE,
-    AsyncNotification = SQL_ASYNC_NOTIFICATION,
-    BatchRowCount = SQL_BATCH_ROW_COUNT,
-    BatchSupport = SQL_BATCH_SUPPORT,
-    DataSourceName = SQL_DATA_SOURCE_NAME,
-    DriverAwarePoolingSupported = SQL_DRIVER_AWARE_POOLING_SUPPORTED,
-    DriverConnection = SQL_DRIVER_HDBC,
-    DriverDescription = SQL_DRIVER_HDESC,
-    DriverEnvironment = SQL_DRIVER_HENV,
-    DriverLibrary = SQL_DRIVER_HLIB,
-    DriverStatement = SQL_DRIVER_HSTMT,
-    DriverName = SQL_DRIVER_NAME,
-    DriverOdbcVersion = SQL_DRIVER_ODBC_VER,
-    DynamicCursorAttributes1 = SQL_DYNAMIC_CURSOR_ATTRIBUTES1,
-    DynamicCursorAttributes2 = SQL_DYNAMIC_CURSOR_ATTRIBUTES2,
-    ForwardOnlyCursorAttributes1 = SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1,
-    ForwardOnlyCursorAttributes2 = SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2,
-    FileUsage = SQL_FILE_USAGE,
-    GetDataExtensions = SQL_GETDATA_EXTENSIONS,
-    InfoSchemaViews = SQL_INFO_SCHEMA_VIEWS,
-    KeysetCursorAttributes1 = SQL_KEYSET_CURSOR_ATTRIBUTES1,
-    KeysetCursorAttributes2 = SQL_KEYSET_CURSOR_ATTRIBUTES2,
-    MaxAsyncConcurrentStatements = SQL_MAX_ASYNC_CONCURRENT_STATEMENTS,
-    MaxConcurrentActivities = SQL_MAX_CONCURRENT_ACTIVITIES,
-    MaxDriverConnections = SQL_MAX_DRIVER_CONNECTIONS,
-    OdbcInterfaceConformance = SQL_ODBC_INTERFACE_CONFORMANCE,
-    OdbcStandardCLIConformance = SQL_ODBC_STANDARD_CLI_CONFORMANCE,
-    OdbcVersion = SQL_ODBC_VER,
-    ParameterArrayRowCounts = SQL_PARAM_ARRAY_ROW_COUNTS,
-    ParameterArraySelects = SQL_PARAM_ARRAY_SELECTS,
-    RowUpdates = SQL_ROW_UPDATES,
-    SearchPatternEscape = SQL_SEARCH_PATTERN_ESCAPE,
-    ServerName = SQL_SERVER_NAME,
-    StaticCursorAttributes1 = SQL_STATIC_CURSOR_ATTRIBUTES1,
-    StaticCursorAttributes2 = SQL_STATIC_CURSOR_ATTRIBUTES2,
+//<<<<<<< HEAD
+//enum InfoType : usmallint_t
+//{
+//    // Driver Information
+//    ActiveEnvironments = SQL_ACTIVE_ENVIRONMENTS,
+//    AsyncConnectionFunctions = SQL_ASYNC_DBC_FUNCTIONS,
+//    AsyncMode = SQL_ASYNC_MODE,
+//    AsyncNotification = SQL_ASYNC_NOTIFICATION,
+//    BatchRowCount = SQL_BATCH_ROW_COUNT,
+//    BatchSupport = SQL_BATCH_SUPPORT,
+//    DataSourceName = SQL_DATA_SOURCE_NAME,
+//    DriverAwarePoolingSupported = SQL_DRIVER_AWARE_POOLING_SUPPORTED,
+//    DriverConnection = SQL_DRIVER_HDBC,
+//    DriverDescription = SQL_DRIVER_HDESC,
+//    DriverEnvironment = SQL_DRIVER_HENV,
+//    DriverLibrary = SQL_DRIVER_HLIB,
+//    DriverStatement = SQL_DRIVER_HSTMT,
+//    DriverName = SQL_DRIVER_NAME,
+//    DriverOdbcVersion = SQL_DRIVER_ODBC_VER,
+//    DynamicCursorAttributes1 = SQL_DYNAMIC_CURSOR_ATTRIBUTES1,
+//    DynamicCursorAttributes2 = SQL_DYNAMIC_CURSOR_ATTRIBUTES2,
+//    ForwardOnlyCursorAttributes1 = SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1,
+//    ForwardOnlyCursorAttributes2 = SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2,
+//    FileUsage = SQL_FILE_USAGE,
+//    GetDataExtensions = SQL_GETDATA_EXTENSIONS,
+//    InfoSchemaViews = SQL_INFO_SCHEMA_VIEWS,
+//    KeysetCursorAttributes1 = SQL_KEYSET_CURSOR_ATTRIBUTES1,
+//    KeysetCursorAttributes2 = SQL_KEYSET_CURSOR_ATTRIBUTES2,
+//    MaxAsyncConcurrentStatements = SQL_MAX_ASYNC_CONCURRENT_STATEMENTS,
+//    MaxConcurrentActivities = SQL_MAX_CONCURRENT_ACTIVITIES,
+//    MaxDriverConnections = SQL_MAX_DRIVER_CONNECTIONS,
+//    OdbcInterfaceConformance = SQL_ODBC_INTERFACE_CONFORMANCE,
+//    OdbcStandardCLIConformance = SQL_ODBC_STANDARD_CLI_CONFORMANCE,
+//    OdbcVersion = SQL_ODBC_VER,
+//    ParameterArrayRowCounts = SQL_PARAM_ARRAY_ROW_COUNTS,
+//    ParameterArraySelects = SQL_PARAM_ARRAY_SELECTS,
+//    RowUpdates = SQL_ROW_UPDATES,
+//    SearchPatternEscape = SQL_SEARCH_PATTERN_ESCAPE,
+//    ServerName = SQL_SERVER_NAME,
+//    StaticCursorAttributes1 = SQL_STATIC_CURSOR_ATTRIBUTES1,
+//    StaticCursorAttributes2 = SQL_STATIC_CURSOR_ATTRIBUTES2,
+//
+//    // DBMS Product Information
+//    DatabaseName = SQL_DATABASE_NAME,
+//    DBMSName = SQL_DBMS_NAME,
+//    DBMSVersion = SQL_DBMS_VER,
+//
+//    // Data Source Information
+//    AccessibleProcedures = SQL_ACCESSIBLE_PROCEDURES,
+//    AccessibleTables = SQL_ACCESSIBLE_TABLES,
+//    BookmarkPersistence = SQL_BOOKMARK_PERSISTENCE,
+//    CatalogTerm = SQL_CATALOG_TERM,
+//    CollationSequence = SQL_COLLATION_SEQ,
+//    ConcatenateNullBehavior = SQL_CONCAT_NULL_BEHAVIOR,
+//    CursorCommitBehavior = SQL_CURSOR_COMMIT_BEHAVIOR,
+//    CursorRollbackBehavior = SQL_CURSOR_ROLLBACK_BEHAVIOR,
+//    CursorSensitivity = SQL_CURSOR_SENSITIVITY,
+//    DataSourceReadOnly = SQL_DATA_SOURCE_READ_ONLY,
+//    DefaultTransactionIsolation = SQL_DEFAULT_TXN_ISOLATION,
+//    DescribeParameter = SQL_DESCRIBE_PARAMETER,
+//    MultipleResultSets = SQL_MULT_RESULT_SETS,
+//    MultipleActiveTransactions = SQL_MULTIPLE_ACTIVE_TXN,
+//    NeedLongDataLength = SQL_NEED_LONG_DATA_LEN,
+//    NullCollation = SQL_NULL_COLLATION,
+//    ProcedureTerm = SQL_PROCEDURE_TERM,
+//    SchemaTerm = SQL_SCHEMA_TERM,
+//    ScrollOptions = SQL_SCROLL_OPTIONS,
+//    TableTerm = SQL_TABLE_TERM,
+//    TransactionCapable = SQL_TXN_CAPABLE,
+//    TransactionIsolationOption = SQL_TXN_ISOLATION_OPTION,
+//    UserName = SQL_USER_NAME,
+//
+//}
+//
+//=======
 
-    // DBMS Product Information
-    DatabaseName = SQL_DATABASE_NAME,
-    DBMSName = SQL_DBMS_NAME,
-    DBMSVersion = SQL_DBMS_VER,
-
-    // Data Source Information
-    AccessibleProcedures = SQL_ACCESSIBLE_PROCEDURES,
-    AccessibleTables = SQL_ACCESSIBLE_TABLES,
-    BookmarkPersistence = SQL_BOOKMARK_PERSISTENCE,
-    CatalogTerm = SQL_CATALOG_TERM,
-    CollationSequence = SQL_COLLATION_SEQ,
-    ConcatenateNullBehavior = SQL_CONCAT_NULL_BEHAVIOR,
-    CursorCommitBehavior = SQL_CURSOR_COMMIT_BEHAVIOR,
-    CursorRollbackBehavior = SQL_CURSOR_ROLLBACK_BEHAVIOR,
-    CursorSensitivity = SQL_CURSOR_SENSITIVITY,
-    DataSourceReadOnly = SQL_DATA_SOURCE_READ_ONLY,
-    DefaultTransactionIsolation = SQL_DEFAULT_TXN_ISOLATION,
-    DescribeParameter = SQL_DESCRIBE_PARAMETER,
-    MultipleResultSets = SQL_MULT_RESULT_SETS,
-    MultipleActiveTransactions = SQL_MULTIPLE_ACTIVE_TXN,
-    NeedLongDataLength = SQL_NEED_LONG_DATA_LEN,
-    NullCollation = SQL_NULL_COLLATION,
-    ProcedureTerm = SQL_PROCEDURE_TERM,
-    SchemaTerm = SQL_SCHEMA_TERM,
-    ScrollOptions = SQL_SCROLL_OPTIONS,
-    TableTerm = SQL_TABLE_TERM,
-    TransactionCapable = SQL_TXN_CAPABLE,
-    TransactionIsolationOption = SQL_TXN_ISOLATION_OPTION,
-    UserName = SQL_USER_NAME,
-
-}
-
-=======
 // dfmt off
 enum InfoType : usmallint_t
 {
@@ -688,7 +689,7 @@ enum IdentifierCase : usmallint_t
 //    NonNull = SQL_NNC_NON_NULL, // columns cannot be nullable (supports `not null` column constraint)
 //}
 
->>>>>>> origin/work-2017-01-12
+// >>>  >>>  > origin / work - 2017 - 01 - 12
 class Connection : Handle
 {
     package Environment _env;
