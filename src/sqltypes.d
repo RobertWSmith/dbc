@@ -1,3 +1,4 @@
+// Written in the D programming language.
 module dbc.sqltypes;
 
 import std.stdint;
