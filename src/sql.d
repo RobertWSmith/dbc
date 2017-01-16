@@ -107,6 +107,7 @@ struct Diagnostics
     }
 }
 
+// ODBC diagnostics
 Diagnostics[] ExtractError(HandleType handleType, handle_t handle)
 {
     debug writeln("called `ExtractError`");
@@ -133,6 +134,7 @@ Diagnostics[] ExtractError(HandleType handleType, handle_t handle)
     return output;
 }
 
+// --- Allocate and Free
 void AllocHandle(HandleType handleType, handle_t inputHandle, handle_t* outputHandle)
 {
     debug writefln("called `AllocHandle` w/ HandleType: %s", handleType);
@@ -187,6 +189,9 @@ unittest
     FreeHandle(typ, handle);
 }
 
+// --- Allocate and Free
+
+// --- Set and Get Attributes
 handle_t SetAttribute(HandleType handleType, handle_t handle, int_t attribute,
         pointer_t value_ptr, int_t buffer_length)
 {
@@ -294,6 +299,8 @@ handle_t GetInfo(handle_t connectionHandle, usmallint_t infoType,
     return connectionHandle;
 }
 
+// --- Set and Get Attributes
+
 char_t[] str_conv(string_t input)
 {
     import std.string : toStringz;
@@ -329,6 +336,7 @@ struct SqlDriver
     }
 }
 
+// --- Environment Data
 SqlDriver[] Drivers(handle_t environmentHandle)
 {
     debug writeln("called `Drivers`");
@@ -483,6 +491,9 @@ unittest
     FreeHandle(typ, handle);
 }
 
+// --- Environment Data
+
+// --- Connect to Data Source
 handle_t Connect(handle_t connectionHandle, string_t serverName,
         string_t userName, string_t authentication)
 {
@@ -534,6 +545,231 @@ handle_t Disconnect(handle_t connectionHandle)
     return connectionHandle;
 }
 
+// --- Connect to Data Sources
+
+// --- Catalog functions
+handle_t Tables(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName, string_t tableType)
+{
+    debug writefln("called `Tables` catalogName: %s schemaName: %s tableName: %s tableType: %s",
+            catalogName, schemaName, tableName, tableType);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+    char_t[] type = str_conv(tableType);
+
+    if (!succeeded(SQLTables(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS, type.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+    return statementHandle;
+}
+
+handle_t Columns(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName, string_t columnName)
+{
+    debug writefln("called `Columns` catalogName: %s schemaName: %s tableName: %s columnName: %s",
+            catalogName, schemaName, tableName, columnName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+    char_t[] column = str_conv(columnName);
+
+    if (!succeeded(SQLColumns(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS, column.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t Statistics(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName, usmallint_t unique, usmallint_t reserved)
+{
+    debug writefln("called `Statistics` catalogName: %s schemaName: %s tableName: %s unique: %s reserved: %s",
+            catalogName, schemaName, tableName, unique, reserved);
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+
+    if (!succeeded(SQLStatistics(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS, unique, reserved)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t SpecialColumns(handle_t statementHandle, smallint_t identifierType, string_t catalogName,
+        string_t schemaName, string_t tableName, smallint_t rowScope, smallint_t nullable)
+{
+    debug writefln("called `SpecialColumns` identifierType: %s catalogName: %s schemaName: %s tableName: %s rowScope: %s nullable: %s",
+            identifierType, catalogName, schemaName, tableName, rowScope, nullable);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+
+    if (!succeeded(SQLSpecialColumns(statementHandle, identifierType, catalog.ptr,
+            SQL_NTS, schema.ptr, SQL_NTS, table.ptr, SQL_NTS, rowScope, nullable)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t PrimaryKeys(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName)
+{
+    import etc.c.odbc.sqlext : SQLPrimaryKeys;
+
+    debug writefln("called `PrimaryKeys` catalogName: %s schemaName: %s tableName: %s",
+            catalogName, schemaName, tableName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+
+    if (!succeeded(SQLPrimaryKeys(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t ForeignKeys(handle_t statementHandle, string_t pkCatalogName, string_t pkSchemaName,
+        string_t pkTableName, string_t fkCatalogName, string_t fkSchemaName, string_t fkTableName)
+{
+    import etc.c.odbc.sqlext : SQLForeignKeys;
+
+    debug writefln("called `ForeignKeys` pkCatalogName: %s pkSchemaName: %s pkTableName: %s fkCatalogName: %s fkSchemaName: %s fkTableName",
+            pkCatalogName, pkSchemaName, pkTableName, fkCatalogName, fkSchemaName, fkTableName);
+
+    char_t[] catalog = str_conv(pkCatalogName);
+    char_t[] schema = str_conv(pkSchemaName);
+    char_t[] table = str_conv(pkTableName);
+    char_t[] f_catalog = str_conv(fkCatalogName);
+    char_t[] f_schema = str_conv(fkSchemaName);
+    char_t[] f_table = str_conv(fkTableName);
+
+    if (!succeeded(SQLForeignKeys(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS, f_catalog.ptr, SQL_NTS,
+            f_schema.ptr, SQL_NTS, f_table.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t TablePrivileges(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName)
+{
+    import etc.c.odbc.sqlext : SQLTablePrivileges;
+
+    debug writefln("called `TablePrivileges` catalogName: %s schemaName: %s tableName: %s",
+            catalogName, schemaName, tableName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+
+    if (!succeeded(SQLTablePrivileges(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t ColumnPrivileges(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t tableName, string_t columnName)
+{
+    import etc.c.odbc.sqlext : SQLColumnPrivileges;
+
+    debug writefln("called `ColumnPrivileges` catalogName: %s schemaName: %s tableName: %s columnName: %s",
+            catalogName, schemaName, tableName, columnName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] table = str_conv(tableName);
+    char_t[] column = str_conv(columnName);
+
+    if (!succeeded(SQLColumnPrivileges(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, table.ptr, SQL_NTS, column.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t Procedures(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t procedureName)
+{
+    import etc.c.odbc.sqlext : SQLProcedures;
+
+    debug writefln("called `Procedures` catalogName: %s schemaName: %s procedureName: %s",
+            catalogName, schemaName, procedureName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] procedure = str_conv(procedureName);
+
+    if (!succeeded(SQLProcedures(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, procedure.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t ProcedureColumns(handle_t statementHandle, string_t catalogName,
+        string_t schemaName, string_t procedureName, string_t columnName)
+{
+    import etc.c.odbc.sqlext : SQLProcedureColumns;
+
+    debug writefln("called `ProcedureColumns` catalogName: %s schemaName: %s procedureName: %s columnName: %s",
+            catalogName, schemaName, procedureName, columnName);
+
+    char_t[] catalog = str_conv(catalogName);
+    char_t[] schema = str_conv(schemaName);
+    char_t[] procedure = str_conv(procedureName);
+    char_t[] column = str_conv(columnName);
+
+    if (!succeeded(SQLProcedureColumns(statementHandle, catalog.ptr, SQL_NTS,
+            schema.ptr, SQL_NTS, procedure.ptr, SQL_NTS, column.ptr, SQL_NTS)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+
+handle_t GetTypeInfo(handle_t statementHandle, smallint_t dataType)
+{
+    debug writefln("called `GetTypeInfo` dataType: %s", dataType);
+
+    if (!succeeded(SQLGetTypeInfo(statementHandle, dataType)))
+    {
+        throw new OdbcException(HandleType.Statement, statementHandle);
+    }
+
+    return statementHandle;
+}
+// --- Catalog functions
+
+// --- Bind Columns & Paramaeters
 handle_t BindColumn(handle_t statementHandle, usmallint_t columnNbr, smallint_t targetType,
         pointer_t targetValuePtr, int_t bufferLength = 0, int_t* strLen_or_IndPtr = null)
 {
@@ -561,6 +797,7 @@ handle_t BindParameter(handle_t statementHandle, usmallint_t parameterNbr,
     }
     return statementHandle;
 }
+// --- Bind Columns & Paramaeters
 
 handle_t ExecuteDirect(handle_t statementHandle, string_t statementText)
 {
@@ -731,16 +968,6 @@ handle_t RowCount(handle_t statementHandle, int_t* rowCountPtr)
 {
     debug writeln("called `RowCount`");
     if (!succeeded(SQLRowCount(statementHandle, rowCountPtr)))
-    {
-        throw new OdbcException(HandleType.Statement, statementHandle);
-    }
-    return statementHandle;
-}
-
-handle_t GetTypeInfo(handle_t statementHandle, smallint_t dataType)
-{
-    debug writeln("called `GetTypeInfo`");
-    if (!succeeded(SQLGetTypeInfo(statementHandle, dataType)))
     {
         throw new OdbcException(HandleType.Statement, statementHandle);
     }
